@@ -6,7 +6,6 @@ chrome.alarms.create('timer', {
 // Called when alarm is fired
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === 'timer') {
-    // chrome.storage.local.get(['timer', 'isRunning'], (res) => {
     chrome.storage.local.get(['timer'], (res) => {
       // Updates timer if running
       if (res.timer.isRunning) {
@@ -30,7 +29,7 @@ chrome.storage.local.get(['timer'], (res) => {
     timer:
       'timer' in res
         ? res.timer
-        : { currentTime: 0, isRunning: false, duration: 1 },
+        : { currentTime: 0, isRunning: false, duration: 20 },
   });
 });
 
@@ -41,10 +40,17 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         let timer = res.timer.currentTime + 1;
         let isRunning = true;
         if (timer === res.timer.duration * 60) {
-          this.registration.showNotification('Pomodoro Timer', {
-            body: `${res.timer.duration} minutes has passed`,
-            icon: 'favicon/favicon48.png',
-          });
+          this.registration.showNotification(
+            res.timer.duration > 1
+              ? `${res.timer.duration} Minutes Pomodoro Timer`
+              : `${res.timer.duration} Minute Pomodoro Timer`,
+            {
+              body:
+                res.timer.duration > 1
+                  ? `${res.timer.duration} minutes has passed`
+                  : `${res.timer.duration} minute has passed`,
+            }
+          );
           timer = 0;
           isRunning = false;
         }

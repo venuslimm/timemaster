@@ -15,8 +15,18 @@ setInterval(updateTime, 1000);
 // Element to hold timer/stopwatch content
 const contentContainer = document.getElementById('content-container');
 
+const toggleTimerButton = document.getElementById('toggleTimer');
+const toggleStopwatchButton = document.getElementById('toggleStopwatch');
+function setButtonColors(activeElement, inactiveElement) {
+  activeElement.style.backgroundColor = '#634653';
+  activeElement.style.color = 'white';
+  inactiveElement.style.backgroundColor = 'white';
+  inactiveElement.style.color = 'black';
+}
+
 // HTML rendered when timer is selected to be opened
-document.getElementById('toggleTimer').addEventListener('click', () => {
+toggleTimerButton.addEventListener('click', () => {
+  setButtonColors(toggleTimerButton, toggleStopwatchButton);
   chrome.storage.local.get(['timer'], (res) => {
     contentContainer.innerHTML = `
       <h2 id='timer-display'>${res.timer.duration}:00</h2>
@@ -65,7 +75,8 @@ document.getElementById('toggleTimer').addEventListener('click', () => {
   setInterval(updateTimer, 1000);
 });
 
-document.getElementById('toggleStopwatch').addEventListener('click', () => {
+toggleStopwatchButton.addEventListener('click', () => {
+  setButtonColors(toggleStopwatchButton, toggleTimerButton);
   // Set content for stopwatch
   contentContainer.innerHTML = `
     <h2 id="stopwatch">00:00:00</h2>

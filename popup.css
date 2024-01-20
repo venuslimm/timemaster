@@ -1,4 +1,8 @@
 body {
   width: 200px;
   text-align: center;
+  color: white;
+  background: rgb(2,0,36);
+  background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(92,54,67,1) 82%, rgba(0,44,135,1) 100%);
+  padding: 20px;
 }
