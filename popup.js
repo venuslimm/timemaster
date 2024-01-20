@@ -75,9 +75,6 @@ document.getElementById('toggleStopwatch').addEventListener('click', () => {
     </div>
   `;
 
-  const debugText = document.getElementById('debug');
-  // debugText.innerText = 'rename';
-
   // Map html elements to variables
   const startButton = document.getElementById('btn-start-stopwatch');
   const stopButton = document.getElementById('btn-stop-stopwatch');
@@ -96,47 +93,71 @@ document.getElementById('toggleStopwatch').addEventListener('click', () => {
     document.getElementById('stopwatch').innerText = '00:00:00';
   });
 
-  // Logic for stopwatch
+  /// Logic for stopwatch
 
-  let startTime;
-  let isRunning = false;
+  let startTime_;
+  let isRunning_ = false;
+
+  // Read from storage
+  chrome.storage.local.get(['stopwatch'], (res) => {
+    if (!isObjEmpty(res)) {
+      startTime_ = res['stopwatch']['startTime'];
+      isRunning_ = res['stopwatch']['isRunning'];
+    }
+
+    if (isRunning_) updateStopwatch();
+  });
+
+  function updateStorage(_start, _running) {
+    chrome.storage.local.set({
+      stopwatch: {
+        startTime: _start,
+        isRunning: _running,
+      },
+    });
+  }
 
   function startStopwatch() {
-    debugText.innerHTML = 'Start Pressed';
-
-    if (!isRunning) {
-      startTime = new Date().getTime();
-      isRunning = true;
+    if (!isRunning_) {
+      startTime_ = new Date().getTime();
+      isRunning_ = true;
       updateStopwatch();
     }
   }
 
   function stopStopwatch() {
-    debugText.innerHTML = 'Stop Pressed';
-
-    if (isRunning) {
-      isRunning = false;
+    if (isRunning_) {
+      isRunning_ = false;
+      updateStorage(startTime_, isRunning_);
     }
   }
 
   function resetStopwatch() {
-    debugText.innerHTML = 'Reset Pressed';
-
     stopStopwatch();
     display.innerText = '00:00:00';
+    updateStorage(null, isRunning_);
   }
 
   function updateStopwatch() {
-    debugText.innerHTML = 'Updating ...';
-
-    if (isRunning) {
+    if (isRunning_) {
       const currentTime = new Date().getTime();
-      const elapsedTime = new Date(currentTime - startTime);
-      const hours = elapsedTime.getUTCHours().toString().padStart(2, '0');
-      const minutes = elapsedTime.getUTCMinutes().toString().padStart(2, '0');
-      const seconds = elapsedTime.getUTCSeconds().toString().padStart(2, '0');
-      display.innerText = `${hours}:${minutes}:${seconds}`;
+      const elapsedTime = new Date(currentTime - startTime_);
+      display.innerText = time2string(elapsedTime);
+      updateStorage(startTime_, isRunning_);
       setTimeout(updateStopwatch, 1000);
     }
   }
 });
+
+/// Helper Functions
+
+function isObjEmpty(obj) {
+  return Object.keys(obj).length === 0;
+}
+
+function time2string(time) {
+  const hours = time.getUTCHours().toString().padStart(2, '0');
+  const minutes = time.getUTCMinutes().toString().padStart(2, '0');
+  const seconds = time.getUTCSeconds().toString().padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+}
