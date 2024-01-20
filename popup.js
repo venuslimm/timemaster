@@ -13,45 +13,57 @@ const contentContainer = document.getElementById('content-container');
 
 // HTML rendered when timer is selected to be opened
 document.getElementById('toggleTimer').addEventListener('click', () => {
-  chrome.storage.local.get(['isRunning'], (res) => {
-    contentContainer.innerHTML = `<h1 id='timer-display'>00:00</h1><button id='start-timer-btn'>${
-      res.isRunning ? 'Pause Timer' : 'Start Timer'
-    }</button><button id='reset-timer-btn'>Reset Timer</button>`;
+  chrome.storage.local.get(['timer'], (res) => {
+    contentContainer.innerHTML = `<h1 id='timer-display'>${res.timer.duration}:00</h1><button id='start-timer-btn'>Start/Stop</button>`;
 
     // Start timer button logic
     const startTimerBtn = document.getElementById('start-timer-btn');
     startTimerBtn.addEventListener('click', () => {
-      chrome.storage.local.get(['isRunning'], (res) => {
-        // Toggle isRunning state and button text accordingly
-        chrome.storage.local.set(
-          {
-            isRunning: !res.isRunning,
+      if (res.timer.isRunning) {
+        chrome.storage.local.set({
+          timer: {
+            currentTime: 0,
+            isRunning: false,
+            duration: res.timer.duration,
           },
-          () => {
-            startTimerBtn.textContent = !res.isRunning
-              ? 'Pause Timer'
-              : 'Start Timer';
-          }
-        );
-      });
-    });
-
-    // Reset timer button logic
-    const resetTimerBtn = document.getElementById('reset-timer-btn');
-    resetTimerBtn.addEventListener('click', () => {
-      // Update variables values
-      chrome.storage.local.set({
-        timer: 0,
-        isRunning: false,
-      });
-      // Update button text
-      startTimerBtn.textContent = 'Start Timer';
+        });
+      } else {
+        chrome.storage.local.set({
+          timer: {
+            currentTime: 0,
+            isRunning: true,
+            duration: res.timer.duration,
+          },
+        });
+      }
     });
   });
+
+  // Update timer every 1sec
+  const time = document.getElementById('timer-display');
+  function updateTime() {
+    chrome.storage.local.get(['timer'], (res) => {
+      const time = document.getElementById('timer-display');
+
+      // get no. of minutes & secs
+      const minutes = `${
+        res.timer.duration - Math.ceil(res.timer.currentTime / 60)
+      }`.padStart(2, '0');
+      let seconds = '00';
+      if (res.timer.currentTime % 60 != 0) {
+        seconds = `${60 - (res.timer.currentTime % 60)}`.padStart(2, '0');
+      }
+
+      // show minutes & secs on UI
+      time.textContent = `${minutes}:${seconds}`;
+    });
+  }
+
+  updateTime();
+  setInterval(updateTime, 1000);
 });
 
 document.getElementById('toggleStopwatch').addEventListener('click', () => {
-
   // Set content for stopwatch
   contentContainer.innerHTML = `
     <div id="stopwatch">00:00:00</div>
@@ -64,7 +76,7 @@ document.getElementById('toggleStopwatch').addEventListener('click', () => {
   `;
 
   const debugText = document.getElementById('debug');
-  debugText.innerText = 'rename';
+  // debugText.innerText = 'rename';
 
   // Map html elements to variables
   const startButton = document.getElementById('btn-start-stopwatch');
@@ -73,9 +85,13 @@ document.getElementById('toggleStopwatch').addEventListener('click', () => {
   const display = document.getElementById('stopwatch');
 
   // Attach OnClick Listeners to buttons
-  startButton.addEventListener('click', () => { startStopwatch(); });
-  stopButton.addEventListener('click', () => { stopStopwatch(); });
-  resetButton.addEventListener('click', () => { 
+  startButton.addEventListener('click', () => {
+    startStopwatch();
+  });
+  stopButton.addEventListener('click', () => {
+    stopStopwatch();
+  });
+  resetButton.addEventListener('click', () => {
     stopStopwatch();
     document.getElementById('stopwatch').innerText = '00:00:00';
   });
@@ -86,7 +102,7 @@ document.getElementById('toggleStopwatch').addEventListener('click', () => {
   let isRunning = false;
 
   function startStopwatch() {
-    debugText.innerHTML = "Start Pressed";
+    debugText.innerHTML = 'Start Pressed';
 
     if (!isRunning) {
       startTime = new Date().getTime();
@@ -96,7 +112,7 @@ document.getElementById('toggleStopwatch').addEventListener('click', () => {
   }
 
   function stopStopwatch() {
-    debugText.innerHTML = "Stop Pressed";
+    debugText.innerHTML = 'Stop Pressed';
 
     if (isRunning) {
       isRunning = false;
@@ -104,14 +120,14 @@ document.getElementById('toggleStopwatch').addEventListener('click', () => {
   }
 
   function resetStopwatch() {
-    debugText.innerHTML = "Reset Pressed";
+    debugText.innerHTML = 'Reset Pressed';
 
     stopStopwatch();
     display.innerText = '00:00:00';
   }
 
   function updateStopwatch() {
-    debugText.innerHTML = "Updating ...";
+    debugText.innerHTML = 'Updating ...';
 
     if (isRunning) {
       const currentTime = new Date().getTime();
@@ -123,6 +139,4 @@ document.getElementById('toggleStopwatch').addEventListener('click', () => {
       setTimeout(updateStopwatch, 1000);
     }
   }
-
-
 });
