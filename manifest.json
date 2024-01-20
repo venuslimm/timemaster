@@ -1,0 +1,14 @@
+{
+	"name": "TimeMaster",
+    "version": "1.0.0",
+    "manifest_version": 2,
+    "description": "Timer for the lazy people",
+    "background": {
+        "scripts": ["background.js"],
+        "persistent": false
+    },
+    "browser_action": {
+        "default_popup": "popup.html"
+    },
+    "permissions": ["<all_urls>"]
+}
