@@ -43,7 +43,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         if (timer === res.timer.duration * 60) {
           this.registration.showNotification('Pomodoro Timer', {
             body: `${res.timer.duration} minutes has passed`,
-            // icon: 'icon.png',
+            icon: 'favicon/favicon48.png',
           });
           timer = 0;
           isRunning = false;

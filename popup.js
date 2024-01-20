@@ -5,8 +5,12 @@
 
 // Get current time and print to window
 const timeElement = document.getElementById('time');
-const currentTime = new Date().toLocaleTimeString();
-timeElement.textContent = `The time is: ${currentTime}`;
+function updateTime() {
+  const currentTime = new Date().toLocaleTimeString();
+  timeElement.textContent = `The time is: ${currentTime}`;
+}
+updateTime();
+setInterval(updateTime, 1000);
 
 // Element to hold timer/stopwatch content
 const contentContainer = document.getElementById('content-container');
@@ -14,59 +18,57 @@ const contentContainer = document.getElementById('content-container');
 // HTML rendered when timer is selected to be opened
 document.getElementById('toggleTimer').addEventListener('click', () => {
   chrome.storage.local.get(['timer'], (res) => {
-    contentContainer.innerHTML = `<h1 id='timer-display'>${res.timer.duration}:00</h1><button id='start-timer-btn'>Start/Stop</button>`;
+    contentContainer.innerHTML = `
+      <h2 id='timer-display'>${res.timer.duration}:00</h2>
+      <button id='start-end-timer-btn'>Start/End</button>
+    `;
 
-    // Start timer button logic
-    const startTimerBtn = document.getElementById('start-timer-btn');
-    startTimerBtn.addEventListener('click', () => {
+    // Start End timer button logic
+    function updateIsRunning(isRunningValue) {
+      chrome.storage.local.set({
+        timer: {
+          currentTime: 0,
+          isRunning: isRunningValue,
+          duration: res.timer.duration,
+        },
+      });
+    }
+    const startEndTimerBtn = document.getElementById('start-end-timer-btn');
+    startEndTimerBtn.addEventListener('click', () => {
       if (res.timer.isRunning) {
-        chrome.storage.local.set({
-          timer: {
-            currentTime: 0,
-            isRunning: false,
-            duration: res.timer.duration,
-          },
-        });
+        updateIsRunning(false);
       } else {
-        chrome.storage.local.set({
-          timer: {
-            currentTime: 0,
-            isRunning: true,
-            duration: res.timer.duration,
-          },
-        });
+        updateIsRunning(true);
       }
     });
   });
 
   // Update timer every 1sec
-  const time = document.getElementById('timer-display');
-  function updateTime() {
+  function updateTimer() {
     chrome.storage.local.get(['timer'], (res) => {
-      const time = document.getElementById('timer-display');
+      const timerDisplay = document.getElementById('timer-display');
+      if (timerDisplay != null) {
+        const minutes = `${
+          res.timer.duration - Math.ceil(res.timer.currentTime / 60)
+        }`.padStart(2, '0');
+        let seconds = '00';
+        if (res.timer.currentTime % 60 != 0) {
+          seconds = `${60 - (res.timer.currentTime % 60)}`.padStart(2, '0');
+        }
 
-      // get no. of minutes & secs
-      const minutes = `${
-        res.timer.duration - Math.ceil(res.timer.currentTime / 60)
-      }`.padStart(2, '0');
-      let seconds = '00';
-      if (res.timer.currentTime % 60 != 0) {
-        seconds = `${60 - (res.timer.currentTime % 60)}`.padStart(2, '0');
+        // Show minutes & secs on UI
+        timerDisplay.textContent = `${minutes}:${seconds}`;
       }
-
-      // show minutes & secs on UI
-      time.textContent = `${minutes}:${seconds}`;
     });
   }
-
-  updateTime();
-  setInterval(updateTime, 1000);
+  updateTimer();
+  setInterval(updateTimer, 1000);
 });
 
 document.getElementById('toggleStopwatch').addEventListener('click', () => {
   // Set content for stopwatch
   contentContainer.innerHTML = `
-    <div id="stopwatch">00:00:00</div>
+    <h2 id="stopwatch">00:00:00</h2>
 
     <div>
       <button id="btn-start-stopwatch">Start</button>
