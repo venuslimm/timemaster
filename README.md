@@ -1,2 +1,5 @@
 # timemaster
-hack&amp;roll 2024 - timer for the lazy people
+
+Project for Hack & Roll 2024
+
+timer for the lazy people
